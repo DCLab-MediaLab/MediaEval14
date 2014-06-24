@@ -53,7 +53,7 @@ public class Ctm_to_csv  {
 		String[] tokenized = untokenedSource.split(separator);
 		StringBuilder builder = new StringBuilder();
 		for(String s : tokenized) {
-			builder.append(s+",");
+			builder.append(s+";"); 		//corrected to semicolon
 		}
 		return builder.toString();
 	}
@@ -108,7 +108,7 @@ public class Ctm_to_csv  {
 				if(files.get(index).toString().endsWith(".ctm")){
 					ctmFiles++;
 					setInput(file.toString());
-					String inputName=file.getName().split(".ctm")[0]; 	//kiterjeszt�s lev�g�s
+					String inputName=file.getName().split(".ctm")[0]; 	//cut the extension
 					System.out.println("File"+index+": "+inputName);
 					BufferedReader br = null;
 					BufferedWriter bw = null;
