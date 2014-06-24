@@ -10,17 +10,18 @@ import java.util.List;
 public class Ctm_to_csv  {
 
 	/**
-	 * tesztadat fájl neve - elérése
+	 * testdata 
 	 */
 	private static String input="inputName";
 
 	/**
-	 * tesztadat fájl kiterjesztése
+	 * testdata extension
+	 * 
 	 */
 	private static String fileExtension=".csv";
 
 	/**
-	 * tokenizáló szeparátor
+	 * tokenizing separator
 	 * default: space
 	 */
 	public static String separator=" ";
@@ -107,7 +108,7 @@ public class Ctm_to_csv  {
 				if(files.get(index).toString().endsWith(".ctm")){
 					ctmFiles++;
 					setInput(file.toString());
-					String inputName=file.getName().split(".ctm")[0]; 	//kiterjesztés levágás
+					String inputName=file.getName().split(".ctm")[0]; 	//kiterjesztï¿½s levï¿½gï¿½s
 					System.out.println("File"+index+": "+inputName);
 					BufferedReader br = null;
 					BufferedWriter bw = null;
