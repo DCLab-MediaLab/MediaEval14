@@ -29,25 +29,25 @@ public class Ctm_to_csv  {
 		}
 		if(args.length>1){
 			System.out.println("OUTPUT DIRECTORY provided: "+args[1]+"\n");
-			output_folder= new File(args[1]);
-		}
-		else{
-			System.out.println("OUTPUT DIRECTORY is not provided!");
-			return;
-		}
-				
-		output_folder.mkdir();
-		int ctmFiles=0;
-		File file= null;
+				output_folder= new File(args[1]);
+			}
+			else{
+				System.out.println("OUTPUT DIRECTORY is not provided!");
+				return;
+			}
+					
+			output_folder.mkdir();
+			int ctmFiles=0;
+			File file= null;
 
-		File[] files = folder.listFiles();
+			File[] files = folder.listFiles();
 
-		if(files.length!=0)
-			for(int index=0;index<files.length;++index){
-				file= new File(files[index].toString());
-				if(files[index].toString().endsWith(".ctm")){
-					ctmFiles++;
-					String inputName=file.getName().split(".ctm")[0]; 	//kiterjesztés levágás
+			if(files.length!=0)
+				for(int index=0;index<files.length;++index){
+					file= new File(files[index].toString());
+					if(files[index].toString().endsWith(".ctm")){
+						ctmFiles++;
+						String inputName=file.getName().split(".ctm")[0];
 					System.out.println("File"+index+": "+inputName);
 					BufferedReader br = null;
 					BufferedWriter bw = null;
