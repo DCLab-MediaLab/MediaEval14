@@ -14,7 +14,9 @@ foreach($files as $file){
 	if($file == '.' || $file == '..') continue;
 
 	$counter++;
-	$csv = fopen($output."/test".$file.".csv","w");
+	$basename = substr($file, 1);
+	echo 'json '.$basename."\n";
+	$csv = fopen($output."/".$basename.".csv","w");
 	//add BOM to fix UTF-8 in Excel
 	fputs($csv, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
 	$json = file_get_contents($input.'/'.$file);
