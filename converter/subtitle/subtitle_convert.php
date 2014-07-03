@@ -64,7 +64,7 @@ function doConvert($from,$to)
 
 foreach($infiles as $onefile)
 {
-	$out=$argv[2]."/".str_replace(".xml",".subtitle.csv",basename($onefile));
+	$out=$argv[2]."/".str_replace(".xml",".subtitle.csv",substr(basename($onefile),1));
 	doConvert($argv[1]."/subtitles/".$onefile,$out);
 	echo("Processing: ".basename($onefile)."\n");
 }
