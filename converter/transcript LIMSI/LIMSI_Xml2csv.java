@@ -61,7 +61,7 @@ public class XmlParse {
 							printNote(doc.getChildNodes());
 						}
 						BufferedWriter bw = null;
-						bw = new BufferedWriter(new FileWriter(output_folder+"//"+inputName+".csv"));
+						bw = new BufferedWriter(new FileWriter(output_folder+"//"+inputName+".transcript.LIMSI.csv"));
 						
 						for(Object i : nodesForHeaders)
 							bw.write(i.toString()+";");
