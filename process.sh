@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ]; do
+if [ "$#" -ne 2 ]; then 
     echo "Usage $0 <input dir> <output dir>"
     exit -1
-done
+fi
 
 inp=$1
 out=$2
