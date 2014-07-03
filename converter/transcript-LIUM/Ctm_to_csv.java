@@ -55,7 +55,7 @@ public class Ctm_to_csv  {
 					try {
 						String currentLine;
 						br = new BufferedReader(new FileReader(file.toString()));
-						bw = new BufferedWriter(new FileWriter(output_folder+"//"+inputName+".csv"));
+						bw = new BufferedWriter(new FileWriter(output_folder+"//"+inputName+".transcript-lium.csv"));
 						bw.write("Filename;SDR(1);Start Time;Duration Time;Word;Confidence\n");
 						while((currentLine=br.readLine())!= null){
 
