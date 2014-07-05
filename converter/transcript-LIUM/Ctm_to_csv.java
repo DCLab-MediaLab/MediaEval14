@@ -56,7 +56,7 @@ public class Ctm_to_csv  {
 						String currentLine;
 						br = new BufferedReader(new FileReader(file.toString()));
 						bw = new BufferedWriter(new FileWriter(output_folder+"//"+inputName+".transcript-lium.csv"));
-						bw.write("Filename;SDR(1);Start Time;Duration Time;Word;Confidence\n");
+						bw.write("filename;sdr;start;duration;word;confidence\n");
 						while((currentLine=br.readLine())!= null){
 
 							String list=tokenize(currentLine, " ");

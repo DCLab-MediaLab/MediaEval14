@@ -30,8 +30,14 @@ function doConvert($from,$to)
 	$xml=json_decode(json_encode(simplexml_load_string(file_get_contents($from))),TRUE);
 	//yes, I just did that
 
-
 	$stdout = fopen($to, 'w');
+
+	$row=array();
+	$row[]="begin";
+	$row[]="end";
+	$row[]="text";
+	fputcsv($stdout, $row, ";");
+
 	foreach($xml['body']['div']['p'] as $oneline)
 	{
 		$row=array();
@@ -58,7 +64,7 @@ function doConvert($from,$to)
 			$row[]=trim($oneline["span"]);
 		}
 
-		fputcsv($stdout, $row);
+		fputcsv($stdout, $row, ";");
 	}
 }
 
