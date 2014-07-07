@@ -34,6 +34,11 @@ def process_type(descr_type, filename):
 				{"cols": ['filename', 'sdr', 'start', 'duration', 'word', 'confidence'],
 				"types": [str, float, float, float, str, float],
 				"time_start": "start",
+				"length": "duration"},
+			"tar.scenecut":
+				{"cols": ['filename', 'frameid'],
+				"types": [str, int],
+				"time_start": "start",
 				"length": "duration"}
 			}
 	if descr_type not in switch:
@@ -47,6 +52,7 @@ def py2sqlite(tplst):
 	return [tpdict[i] for i in tplst]
 
 def process_by_scheme(scheme, csvfile):
+	# csv -> sqlite3 table
 	con = sqlite3.connect(":memory:")
 	con.text_factory = str
 	cur = con.cursor()
@@ -70,6 +76,7 @@ def process_by_scheme(scheme, csvfile):
 	# dispose connection
 
 def write_time_interval_file(cur, interval, scheme, out_dir):
+	# sql query for filtering time interval
 	if "time_end" in scheme:
 		print("SELECT * FROM t WHERE %s<'%s' AND '%s'<%s"
 			% (interval[0], scheme["time_start"], scheme["time_end"], interval[1]))
