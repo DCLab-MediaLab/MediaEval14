@@ -1,5 +1,3 @@
-package xml;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -17,7 +15,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class XmlParse {
+public class Xml2csv {
 
 	public static File input_folder = null;
 	public static File output_folder = null;
@@ -79,8 +77,8 @@ public class XmlParse {
 		}
 	}
 
-	private static Set<Object> nodesForHeaders=new LinkedHashSet<>(); 
-	private static List<Object> values=new ArrayList<>();
+	private static Set<Object> nodesForHeaders=new LinkedHashSet<Object>(); 
+	private static List<Object> values=new ArrayList<Object>();
 
 	private static void printNote(NodeList nodeList) {
 

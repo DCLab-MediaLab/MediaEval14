@@ -1,5 +1,3 @@
-package nst;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -76,7 +74,7 @@ public class Nst {
 		}
 	}
 
-	private static List<Object> values=new ArrayList<>();	
+	private static List<Object> values=new ArrayList<Object>();	
 	private static boolean segment = false; //copy-flag for segment
 	
 	private static void printNote(NodeList nodeList) {
