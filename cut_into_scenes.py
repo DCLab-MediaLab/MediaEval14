@@ -17,12 +17,36 @@ def main():
 		base = base.split(".")[0]
 		print("processing %s" % base)
 		csvfiles = glob.glob("%s/%s.*.csv" % (inp, base))
-		for descr in csvfiles:
-			descr_type = os.path.split(descr)[-1].split(".")[1:-1]
-			descr_type = ".".join(descr_type)
-			process_type(descr_type, descr)
 
-def process_type(descr_type, filename):
+		# hell yeah, syntactic anti-sugar to the rescue
+		proc_dict = {".".join(os.path.split(descr)[-1].split(".")[1:-1]) : descr
+			for descr in csvfiles}
+
+		cut_points = []
+
+		if "tar.info" in proc_dict and "tar.scenecut" in proc_dict:
+			with open(proc_dict["tar.info"]) as info_file, open(proc_dict["tar.scenecut"]) as cut_file:
+				infocsv = csv.DictReader(info_file, delimiter=";")
+				cutcsv = csv.DictReader(cut_file, delimiter=";")
+				fps = float(infocsv.next()["fps"])
+				cut_points = [float(row["frameid"])*fps for row in cutcsv]
+				# TODO: append last one
+				cut_points.insert(0, 0.0)
+		else:
+			print("warn: no info or scenecut file for %s" % base)
+			continue
+
+		del proc_dict["tar.info"]
+		del proc_dict["tar.scenecut"]
+
+		for k in proc_dict.keys():
+			build_type(k, proc_dict[k])
+			#for i in range(len(cut_points)-1):
+			#	f0, f1 = cut_points[i], cut_points[i+1]
+			#	print("cutting interval %f - %f" % (f0, f1))
+			#	process_type(k, proc_dict[k], (f0, f1), "outtt")
+
+def build_type(descr_type, filename):
 	print("processing %s %s" % (descr_type, filename))
 	switch = {
 			"subtitle" : 
@@ -44,14 +68,14 @@ def process_type(descr_type, filename):
 	if descr_type not in switch:
 		print("warn: can not handle descr_type %s" % descr_type)
 	else:
-		cur = process_by_scheme(switch[descr_type], filename)
-		write_time_interval_file(cur, (30.0, 40.), switch[descr_type], "outt")
+		cur = build_by_scheme(descr_type, switch[descr_type], filename)
+		#write_time_interval_file(cur, interval, switch[descr_type], out_dir)
 
 def py2sqlite(tplst):
 	tpdict = {float: "REAL", str: "TEXT", int: "INTEGER"}
 	return [tpdict[i] for i in tplst]
 
-def process_by_scheme(scheme, csvfile):
+def build_by_scheme(descr_type, scheme, csvfile):
 	# csv -> sqlite3 table
 	con = sqlite3.connect(":memory:")
 	con.text_factory = str
@@ -70,9 +94,7 @@ def process_by_scheme(scheme, csvfile):
 	cur.executemany("INSERT INTO t (%s) VALUES (%s);" % (cols, qmarks), to_db)
 	con.commit()
 
-	print(to_db[0])
-
-	return cur
+	return cur, con
 	# dispose connection
 
 def write_time_interval_file(cur, interval, scheme, out_dir):
