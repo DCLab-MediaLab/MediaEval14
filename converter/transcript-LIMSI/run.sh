@@ -1,2 +1,2 @@
 #!/bin/bash
-java Xml2csv $@
+java XmlParse $@
