@@ -52,7 +52,7 @@ def main():
 				infocsv = csv.DictReader(info_file, delimiter=";")
 				cutcsv = csv.DictReader(cut_file, delimiter=";")
 				fps = float(infocsv.next()["fps"])
-				cut_points = [float(row["frameid"])*fps for row in cutcsv]
+				cut_points = [float(row["frameid"])/fps for row in cutcsv]
 				# TODO: append last one
 				cut_points.insert(0, 0.0)
 		else:
