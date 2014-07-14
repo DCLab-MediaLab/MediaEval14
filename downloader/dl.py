@@ -16,14 +16,17 @@ base_url = "https://%s:%s@beehub.nl/home/alyr/cAXES/dev" % (user, passw)
 # list of (path, postfix, prefix) tuples to specify the subdirectories the dataset was split into
 # path is relative to the base url, postfix is actually the extension of the file
 sub_dirs = [("json", "json", "v"),
-    ("ProsodicFeatures", "wav.opensmile.csv", ""),
     ("subtitles", "xml", "v"),
     ("tar", "tar", "v"),
     ("transcripts/LIMSI", "xml", "v"),
     ("transcripts/LIUM/1-best", "ctm", ""),
-    ("webdata/cast", "txt", ""),
-    ("wav", "wav", "v"),
-    ("webm", "webm", "v")]
+    ("transcripts/LIUM/NST-Sheffiled", "xml", "v"),
+    ("webdata/cast", "txt", "")]
+# append to the list to activate:
+#("wav", "wav", "v"),
+#("webm", "webm", "v")
+#("ProsodicFeatures", "wav.opensmile.csv", ""),
+
 # directory the dataset will be downloaded to
 out = dst
 
