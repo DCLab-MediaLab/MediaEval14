@@ -115,17 +115,22 @@ def write_time_interval_file(base, descr_type, scheme, interval, db_con, db_cur,
 	table_name = form_table_name(descr_type)
 	if "time_end" in scheme:
 		query = "SELECT * FROM %s WHERE %s<%s.'%s' AND %s.'%s'<%s ORDER BY %s.'%s'" % (table_name, interval[0], table_name, scheme["time_start"], table_name, scheme["time_end"], interval[1], table_name, scheme["time_start"])
-		db_cur.execute(query)
-		data = db_cur.fetchall()
-		dst = "%s/%s/%s" % (out_dir, base, descr_type)
-		if not os.path.exists(dst):
-			os.makedirs(dst)
-		with open("%s/%s_%s_%03d.csv" % (dst, base, descr_type, cnt), "w") as f:
-			csvhead = ";".join([k for k in scheme["cols"]])
-			f.write(csvhead + "\n")
-			for row in data:
-				f.write(";".join([str(x) for x in row]) + "\n")
-		#print(data)
+	elif "length" in scheme:
+		query = "SELECT * FROM %s WHERE %s<%s.'%s' AND %s.'%s'+%s.'%s'<%s ORDER BY %s.'%s'" % (table_name, interval[0], table_name, scheme["time_start"], table_name, scheme["time_start"], table_name, scheme["length"], interval[1], table_name, scheme["time_start"])
+	else:
+		print("warn: not time information %s" % descr_type)
+		return
+
+	db_cur.execute(query)
+	data = db_cur.fetchall()
+	dst = "%s/%s/%s" % (out_dir, base, descr_type)
+	if not os.path.exists(dst):
+		os.makedirs(dst)
+	with open("%s/%s_%s_%03d.csv" % (dst, base, descr_type, cnt), "w") as f:
+		csvhead = ";".join([k for k in scheme["cols"]])
+		f.write(csvhead + "\n")
+		for row in data:
+			f.write(";".join([str(x) for x in row]) + "\n")
 
 if __name__ == "__main__":
 	main()
