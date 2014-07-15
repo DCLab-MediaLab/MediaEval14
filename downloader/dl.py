@@ -20,7 +20,7 @@ sub_dirs = [("json", "json", "v"),
     ("tar", "tar", "v"),
     ("transcripts/LIMSI", "xml", "v"),
     ("transcripts/LIUM/1-best", "ctm", ""),
-    ("transcripts/LIUM/NST-Sheffiled", "xml", "v"),
+    ("transcripts/NST-Sheffield", "xml", "v"),
     ("webdata/cast", "txt", "")]
 # append to the list to activate:
 #("wav", "wav", "v"),
