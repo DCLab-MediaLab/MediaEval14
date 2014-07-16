@@ -60,7 +60,7 @@ public class Nst {
 						BufferedWriter bw = null;
 						bw = new BufferedWriter(new FileWriter(output_folder+"//"+inputName+".transcript-NST.csv"));
 											
-						bw.write("segment:end;segment:speakerid;segment:start;word:end;word:start;word\n");
+						bw.write("segment_end;segment_speakerid;segment_start;word_end;word_start;word\n");
 
 						for(Object i : values)
 							bw.write(i.toString());
