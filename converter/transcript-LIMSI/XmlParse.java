@@ -59,9 +59,9 @@ public class XmlParse {
 						BufferedWriter bw = null;
 						bw = new BufferedWriter(new FileWriter(output_folder+"//"+inputName+".transcript-limsi.csv"));
 
-						bw.write("SpeechSegment:ch;SpeechSegment:time;SpeechSegment:lang;SpeechSegment:lconf;SpeechSegment:sconf;"
-								+ "SpeechSegment:spkid;SpeechSegment:stime;SpeechSegment:trs;"
-								+ "Word:conf;Word:dur;Word:stime;Word\n");
+						bw.write("SpeechSegment_ch;SpeechSegment_time;SpeechSegment_lang;SpeechSegment_lconf;SpeechSegment_sconf;"
+								+ "SpeechSegment_spkid;SpeechSegment_stime;SpeechSegment_trs;"
+								+ "Word_conf;Word_dur;Word_stime;Word\n");
 						for(Object i : values)
 							bw.write(i.toString());
 						bw.close();
