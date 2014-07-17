@@ -33,7 +33,7 @@ try {
 	die('Error occured while creating phpMorphy instance: ' . $e->getMessage());
 }
 
-$stopwords=explode("\n",file_get_contents("stopwords.txt"));
+$stopwords=explode("\r\n",file_get_contents("stopwords.txt"));
 
 function morpho($word)
 {
@@ -97,10 +97,7 @@ function getConcept($word)
 	if (isStopword($word))
 		return array();
 
-	var_dump($word);
-
 	$word=morpho($word);
-	var_dump($word);
 	if (isStopword($word))
 		return array();	
 
@@ -122,14 +119,11 @@ function getConcept($word)
 
 		if ($word==$oneword)
 			continue;
-		
+
 		$ret[$oneword]=$oneSim[1];
 	}
 
-	var_dump($ret);
-	die();
-
+	return $ret;
 }
 
-getConcept("breakfast");
 ?>
