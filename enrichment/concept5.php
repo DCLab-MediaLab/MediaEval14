@@ -33,7 +33,7 @@ try {
 	die('Error occured while creating phpMorphy instance: ' . $e->getMessage());
 }
 
-$stopwords=explode("\r\n",file_get_contents("stopwords.txt"));
+$stopwords=explode("\r\n",file_get_contents(dirname(__FILE__)."/stopwords.txt"));
 
 function morpho($word)
 {
@@ -65,16 +65,16 @@ function fetchFromWeb($word)
 
 	$url="http://conceptnet5.media.mit.edu/data/5.2/assoc/list/en/".$word."?limit=50&filter=/c/en";
 
-	if (!file_exists("cache/".md5($url)))
+	if (!file_exists(dirname(__FILE__)."/cache/".md5($url)))
 	{
 		$webdata=file_get_contents($url);
 		if (strlen($webdata)>0)
 		{
-			file_put_contents("cache/".md5($url), $webdata);
+			file_put_contents(dirname(__FILE__)."/cache/".md5($url), $webdata);
 		}
 	}
 
-	return file_get_contents("cache/".md5($url));
+	return @file_get_contents(dirname(__FILE__)."/cache/".md5($url));
 }
 
 function isStopword($word)
