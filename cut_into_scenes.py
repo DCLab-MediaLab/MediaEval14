@@ -1,6 +1,6 @@
 import csv, sqlite3, glob, sys, os
 
-DB_NAME = "cut_scene.db"
+DB_NAME = "default_cut_scene.db"
 
 scheme_switch = {
         "subtitle" : 
@@ -33,12 +33,15 @@ scheme_switch = {
 
 def main():
 
-    if len(sys.argv) < 3:
-        print("Usage %s <input dir> <out dir>" % sys.argv[0])
+    global DB_NAME
+    
+    if len(sys.argv) < 4:
+        print("Usage %s <input dir> <out dir> <db_name>" % sys.argv[0])
         sys.exit(-1)
 
     inp = sys.argv[1]
     output_dir = sys.argv[2]
+    DB_NAME = sys.argv[3]
 
     print("input dir: %s" % inp)
     print("out dir: %s" % output_dir)
@@ -121,9 +124,6 @@ def db_append_by_scheme(descr_type, scheme, csvfile, base_fname, db_con, db_cur)
     cols = ",".join(col_lst)
     table_name = form_table_name(descr_type)
 
-    print(decl)
-    print(cols)
-
     db_cur.execute("CREATE TABLE IF NOT EXISTS %s (%s);" % (table_name, decl))
 
     to_db = []
@@ -141,10 +141,6 @@ def db_append_by_scheme(descr_type, scheme, csvfile, base_fname, db_con, db_cur)
                 print(row)
 
     # TODO: check if we already have this row in the db
-    print(table_name)
-    print(cols)
-    print(qmarks)
-    #print(to_db)
     db_cur.executemany("INSERT INTO %s (%s) VALUES (%s);" % (table_name, cols, qmarks), to_db)
     db_con.commit()
 
