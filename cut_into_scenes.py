@@ -1,5 +1,7 @@
 import csv, sqlite3, glob, sys, os
 
+DB_NAME = "cut_scene.db"
+
 scheme_switch = {
         "subtitle" : 
             {"cols": ['begin', 'end', 'text'],
@@ -80,8 +82,8 @@ def main():
             if k not in scheme_switch:
                 print("warn: can not handle descr_type %s" % k)
             else:
-            	print("processing %s" % k)
-                db_append_by_scheme(k, scheme_switch[k], proc_dict[k], db_con, db_cur)
+                print("processing %s" % k)
+                db_append_by_scheme(k, scheme_switch[k], proc_dict[k], base, db_con, db_cur)
                 for i in range(len(cut_points)-1):
                     f0, f1 = cut_points[i], cut_points[i+1]
                     write_time_interval_file(base, k, scheme_switch[k], (f0, f1), db_con, db_cur, output_dir, i)
@@ -89,7 +91,7 @@ def main():
     finit_db(db_con)
 
 def init_db():
-    con = sqlite3.connect(":memory:")
+    con = sqlite3.connect(DB_NAME)
     con.text_factory = str
     cur = con.cursor()
     return con, cur
@@ -106,51 +108,66 @@ def form_table_name(orig):
     table_name = table_name.replace("-", "_")
     return table_name
 
-def db_append_by_scheme(descr_type, scheme, csvfile, db_con, db_cur):
+def db_append_by_scheme(descr_type, scheme, csvfile, base_fname, db_con, db_cur):
     # some question marks for the insert query
-    qmarks = ",".join(["?"]*len(scheme["cols"]))
-    # table scheme 
-    decl = ",".join(["%s %s" % (v, t) for v, t in zip(scheme["cols"], py2sqlite(scheme["types"])) ])
-    cols = ",".join([x for x in scheme["cols"]])
+    qmarks = ",".join(["?"]*(1+len(scheme["cols"])))
+    # table scheme
+    field_lst = ["_filename_ TEXT",]
+    field_lst.extend( ["%s %s" % (v, t) for v, t in zip(scheme["cols"], py2sqlite(scheme["types"]))] )
+    decl = ",".join(field_lst)
+
+    col_lst = ["_filename_",]
+    col_lst.extend([x for x in scheme["cols"]])
+    cols = ",".join(col_lst)
     table_name = form_table_name(descr_type)
+
+    print(decl)
+    print(cols)
 
     db_cur.execute("CREATE TABLE IF NOT EXISTS %s (%s);" % (table_name, decl))
 
+    to_db = []
     with open(csvfile, 'rb') as fin:
         dr = csv.DictReader(fin, delimiter=";")
-        to_db = []
         for row in dr:
             try:
-                tp = tuple([typ(row[col]) for col, typ in zip(scheme["cols"], scheme["types"])])
+                r = [base_fname]
+                r.extend([typ(row[col]) for col, typ in zip(scheme["cols"], scheme["types"])])
+                tp = tuple(r)
                 to_db.append(tp)
             except:
                 print("skipping a row because of some error")
                 print(scheme["cols"])
                 print(row)
 
-
     # TODO: check if we already have this row in the db
+    print(table_name)
+    print(cols)
+    print(qmarks)
+    #print(to_db)
     db_cur.executemany("INSERT INTO %s (%s) VALUES (%s);" % (table_name, cols, qmarks), to_db)
     db_con.commit()
 
-def write_time_interval_file(base, descr_type, scheme, interval, db_con, db_cur, out_dir, cnt):
+def write_time_interval_file(base_fname, descr_type, scheme, interval, db_con, db_cur, out_dir, cnt):
     # sql query for filtering time interval
     table_name = form_table_name(descr_type)
     if "time_end" in scheme:
-        query = "SELECT * FROM %s WHERE %s<%s.'%s' AND %s.'%s'<%s ORDER BY %s.'%s'" % (table_name, interval[0], table_name, scheme["time_start"], table_name, scheme["time_end"], interval[1], table_name, scheme["time_start"])
+        query = "SELECT * FROM %s WHERE %s._filename_ == '%s' AND %s<%s.'%s' AND %s.'%s'<%s ORDER BY %s.'%s'" % (table_name, table_name, base_fname, interval[0], table_name, scheme["time_start"], table_name, scheme["time_end"], interval[1], table_name, scheme["time_start"])
     elif "length" in scheme:
-        query = "SELECT * FROM %s WHERE %s<%s.'%s' AND %s.'%s'+%s.'%s'<%s ORDER BY %s.'%s'" % (table_name, interval[0], table_name, scheme["time_start"], table_name, scheme["time_start"], table_name, scheme["length"], interval[1], table_name, scheme["time_start"])
+        query = "SELECT * FROM %s WHERE %s._filename_ == '%s' AND %s<%s.'%s' AND %s.'%s'+%s.'%s'<%s ORDER BY %s.'%s'" % (table_name, table_name, base_fname, interval[0], table_name, scheme["time_start"], table_name, scheme["time_start"], table_name, scheme["length"], interval[1], table_name, scheme["time_start"])
     else:
         print("warn: not time information %s" % descr_type)
         return
 
     db_cur.execute(query)
     data = db_cur.fetchall()
-    dst = "%s/%s/%s" % (out_dir, base, descr_type)
+    dst = "%s/%s/%s" % (out_dir, base_fname, descr_type)
     if not os.path.exists(dst):
         os.makedirs(dst)
-    with open("%s/%s_%s_%03d.csv" % (dst, base, descr_type, cnt), "w") as f:
-        csvhead = ";".join([k for k in scheme["cols"]])
+    with open("%s/%s_%s_%03d.csv" % (dst, base_fname, descr_type, cnt), "w") as f:
+        all_cols = ["_filename_"]
+        all_cols.extend([k for k in scheme["cols"]])
+        csvhead = ";".join(all_cols)
         f.write(csvhead + "\n")
         for row in data:
             f.write(";".join([str(x) for x in row]) + "\n")
