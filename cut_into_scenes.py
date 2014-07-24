@@ -108,7 +108,7 @@ def do_one(file_tarinfocsv, output_dir):
 
 
 def init_db():
-    con = sqlite3.connect(DB_NAME)
+    con = sqlite3.connect(DB_NAME, check_same_thread=False)
     con.text_factory = str
     cur = con.cursor()
     return con, cur
