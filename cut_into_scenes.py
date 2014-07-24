@@ -34,64 +34,78 @@ scheme_switch = {
 def main():
 
     global DB_NAME
-    
+
     if len(sys.argv) < 4:
-        print("Usage %s <input dir> <out dir> <db_name>" % sys.argv[0])
+        print("Usage %s <input FILE.tar.info.csv> <out dir> <db_name>" % sys.argv[0])
         sys.exit(-1)
 
-    inp = sys.argv[1]
-    output_dir = sys.argv[2]
     DB_NAME = sys.argv[3]
 
-    print("input dir: %s" % inp)
-    print("out dir: %s" % output_dir)
+    do_one(sys.argv[1], sys.argv[2])
+
+    #if len(sys.argv) < 4:
+    #    print("Usage %s <input dir> <out dir> <db_name>" % sys.argv[0])
+    #    sys.exit(-1)
+
+    #inp = sys.argv[1]
+    #output_dir = sys.argv[2]
+    #DB_NAME = sys.argv[3]
+
+    #print("input dir: %s" % inp)
+    #print("out dir: %s" % output_dir)
+
+    # enumerating the base video names
+    #flst = glob.glob("%s/*.tar.info.csv" % inp)
+    #print(flst)
+    #for f in flst:
+    #    do_one(f)
+
+def do_one(file_tarinfocsv, output_dir):
 
     db_con, db_cur = init_db()
 
-    # enumerating the base video names
-    flst = glob.glob("%s/*.tar.info.csv" % inp)
-    print(flst)
-    for f in flst:
-        base = os.path.split(f)[-1]
-        base = base.split(".")[0]
-        print("processing %s" % base)
-        # using the video names enumerating the feature csv files like transcript.csv etc.
-        csvfiles = glob.glob("%s/%s.*.csv" % (inp, base))
+    base = os.path.split(file_tarinfocsv)[-1]
+    base = base.split(".")[0]
+    inp = os.path.split(file_tarinfocsv)[0]
+    print("processing %s" % base)
+    # using the video names enumerating the feature csv files like transcript.csv etc.
+    csvfiles = glob.glob("%s/%s.*.csv" % (inp, base))
 
-        # hell yeah, syntactic anti-sugar to the rescue - building a dictionary "filetype" -> "filename"
-        proc_dict = {".".join(os.path.split(descr)[-1].split(".")[1:-1]) : descr
-            for descr in csvfiles}
+    # hell yeah, syntactic anti-sugar to the rescue - building a dictionary "filetype" -> "filename"
+    proc_dict = {".".join(os.path.split(descr)[-1].split(".")[1:-1]) : descr
+        for descr in csvfiles}
 
-        cut_points = []
+    cut_points = []
 
-        # reading the scenecut points
-        if "tar.info" in proc_dict and "tar.scenecut" in proc_dict:
-            with open(proc_dict["tar.info"]) as info_file, open(proc_dict["tar.scenecut"]) as cut_file:
-                infocsv = csv.DictReader(info_file, delimiter=";")
-                cutcsv = csv.DictReader(cut_file, delimiter=";")
-                fps = float(infocsv.next()["fps"])
-                cut_points = [float(row["frameid"])/fps for row in cutcsv]
-                # TODO: append last one
-                cut_points.insert(0, 0.0)
+    # reading the scenecut points
+    if "tar.info" in proc_dict and "tar.scenecut" in proc_dict:
+        with open(proc_dict["tar.info"]) as info_file, open(proc_dict["tar.scenecut"]) as cut_file:
+            infocsv = csv.DictReader(info_file, delimiter=";")
+            cutcsv = csv.DictReader(cut_file, delimiter=";")
+            fps = float(infocsv.next()["fps"])
+            cut_points = [float(row["frameid"])/fps for row in cutcsv]
+            # TODO: append last one
+            cut_points.insert(0, 0.0)
+    else:
+        print("warn: no info or scenecut file for %s" % base)
+        return
+
+    del proc_dict["tar.info"]
+    del proc_dict["tar.scenecut"]
+
+    for k in proc_dict.keys():
+        # csv -> sqlite3
+        if k not in scheme_switch:
+            print("warn: can not handle descr_type %s" % k)
         else:
-            print("warn: no info or scenecut file for %s" % base)
-            continue
-
-        del proc_dict["tar.info"]
-        del proc_dict["tar.scenecut"]
-
-        for k in proc_dict.keys():
-            # csv -> sqlite3
-            if k not in scheme_switch:
-                print("warn: can not handle descr_type %s" % k)
-            else:
-                print("processing %s" % k)
-                db_append_by_scheme(k, scheme_switch[k], proc_dict[k], base, db_con, db_cur)
-                for i in range(len(cut_points)-1):
-                    f0, f1 = cut_points[i], cut_points[i+1]
-                    write_time_interval_file(base, k, scheme_switch[k], (f0, f1), db_con, db_cur, output_dir, i)
+            print("processing %s" % k)
+            db_append_by_scheme(k, scheme_switch[k], proc_dict[k], base, db_con, db_cur)
+            for i in range(len(cut_points)-1):
+                f0, f1 = cut_points[i], cut_points[i+1]
+                write_time_interval_file(base, k, scheme_switch[k], (f0, f1), db_con, db_cur, output_dir, i)
 
     finit_db(db_con)
+
 
 def init_db():
     con = sqlite3.connect(DB_NAME)
@@ -136,9 +150,9 @@ def db_append_by_scheme(descr_type, scheme, csvfile, base_fname, db_con, db_cur)
                 tp = tuple(r)
                 to_db.append(tp)
             except:
-                print("skipping a row because of some error")
-                print(scheme["cols"])
-                print(row)
+                print("skipping a row because of some error:")
+                print("   %s" % scheme["cols"])
+                print("   %s" % row)
 
     # TODO: check if we already have this row in the db
     db_cur.executemany("INSERT INTO %s (%s) VALUES (%s);" % (table_name, cols, qmarks), to_db)
