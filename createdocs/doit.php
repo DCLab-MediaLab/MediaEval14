@@ -56,7 +56,7 @@ function processSubtitle($f_subtitle) {
                 continue;
 
             //process the 3rd column
-            $words = processLine($data[2]);
+            $words = processLine($data[3]);
 
             foreach ($words as $word) {
                 $newconcept = getConcept($word);
@@ -92,7 +92,7 @@ function processLimsi($f_subtitle) {
                 continue;
 
             //process the 3rd column
-            $words = processLine($data[11]);
+            $words = processLine($data[12]);
 
             foreach ($words as $word) {
                 //ignore {fw}
@@ -132,7 +132,7 @@ function processLium($f_subtitle) {
                 continue;
 
             //process the 3rd column
-            $words = processLine($data[4]);
+            $words = processLine($data[5]);
 
             foreach ($words as $word) {
                 $newconcept = getConcept($word);
@@ -168,7 +168,7 @@ function processNst($f_subtitle) {
                 continue;
 
             //process the 3rd column
-            $words = processLine($data[5]);
+            $words = processLine($data[6]);
 
             foreach ($words as $word) {
                 $newconcept = getConcept($word);
