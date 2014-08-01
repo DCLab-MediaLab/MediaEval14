@@ -44,6 +44,7 @@ function mergeWordWeights(&$into, $other,$weightNormal=1) {
  * @param type $f_subtitle
  */
 function processSubtitle($f_subtitle) {
+    $ret_raw = array();
     $ret = array();
 
     $row=0;
@@ -63,6 +64,7 @@ function processSubtitle($f_subtitle) {
                 if (!isStopword($word))
                 {
                     mergeWordWeights($ret, array($word=>1.5));
+                    mergeWordWeights($ret_raw, array($word=>1));
                 }
             }
             echo(".");
@@ -70,7 +72,7 @@ function processSubtitle($f_subtitle) {
         fclose($handle);
     }
 
-    return $ret;
+    return array($ret_raw,$ret);
 }
 
 /**
@@ -78,6 +80,7 @@ function processSubtitle($f_subtitle) {
  * @param type $f_subtitle
  */
 function processLimsi($f_subtitle) {
+    $ret_raw = array();
     $ret = array();
 
     $row=0;
@@ -100,6 +103,7 @@ function processLimsi($f_subtitle) {
                 mergeWordWeights($ret, $newconcept,$data[8]);
                 if (!isStopword($word))
                 {
+                    mergeWordWeights($ret_raw, array($word=>1));
                     mergeWordWeights($ret, array($word=>1.5*$data[8]));
                 }
             }
@@ -108,7 +112,7 @@ function processLimsi($f_subtitle) {
         fclose($handle);
     }
 
-    return $ret;
+    return array($ret_raw,$ret);
 }
 
 /**
@@ -116,6 +120,7 @@ function processLimsi($f_subtitle) {
  * @param type $f_subtitle
  */
 function processLium($f_subtitle) {
+    $ret_raw = array();
     $ret = array();
 
     $row=0;
@@ -134,6 +139,7 @@ function processLium($f_subtitle) {
                 mergeWordWeights($ret, $newconcept,$data[5]);
                 if (!isStopword($word))
                 {
+                    mergeWordWeights($ret_raw, array($word=>1));
                     mergeWordWeights($ret, array($word=>1.5*$data[5]));
                 }
             }
@@ -142,7 +148,7 @@ function processLium($f_subtitle) {
         fclose($handle);
     }
 
-    return $ret;
+    return array($ret_raw,$ret);
 }
 
 /**
@@ -150,6 +156,7 @@ function processLium($f_subtitle) {
  * @param type $f_subtitle
  */
 function processNst($f_subtitle) {
+    $ret_raw = array();
     $ret = array();
 
     $row=0;
@@ -168,6 +175,7 @@ function processNst($f_subtitle) {
                 mergeWordWeights($ret, $newconcept);
                 if (!isStopword($word))
                 {
+                    mergeWordWeights($ret_raw, array($word=>1));
                     mergeWordWeights($ret, array($word=>1.5));
                 }
             }
@@ -176,7 +184,7 @@ function processNst($f_subtitle) {
         fclose($handle);
     }
 
-    return $ret;
+    return array($ret_raw,$ret);
 }
 
 /**
@@ -188,35 +196,54 @@ function processNst($f_subtitle) {
  * @param type $f_nst
  */
 function processOneSegment($name,$f_subtitle, $f_limsi, $f_lium, $f_nst) {
+    $document=array("title"=>$name);
+    
     $allweight = array();
     //generate word list with weights
     echo("\t subtitle:");
-    $neww = processSubtitle($f_subtitle);
+    list($origw,$neww) = processSubtitle($f_subtitle);
     mergeWordWeights($allweight, $neww,1);
+    
+    arsort($origw);
+    arsort($neww);
+    $document['subtitle']=implode(" ",array_keys($origw));
+    $document['subtitle_concept']=implode(" ",array_keys($neww));
     echo("\n");
     
     echo("\t limsi:");
-    $neww = processLimsi($f_limsi);
+    list($origw,$neww) = processLimsi($f_limsi);
     mergeWordWeights($allweight, $neww,0.6);
+    
+    arsort($origw);
+    arsort($neww);
+    $document['limsi']=implode(" ",array_keys($origw));
+    $document['limsi_concept']=implode(" ",array_keys($neww));
     echo("\n");
     
     echo("\t lium:");
-    $neww = processLium($f_lium);
+    list($origw,$neww) = processLium($f_lium);
     mergeWordWeights($allweight, $neww,0.6);
+    
+    $document['lium']=implode(" ",array_keys($origw));
+    $document['lium_concept']=implode(" ",array_keys($neww));
     echo("\n");
     
     echo("\t nst:");
-    $neww = processNst($f_nst);
+    list($origw,$neww) = processNst($f_nst);
     mergeWordWeights($allweight, $neww,0.6);
+    
+    $document['nst']=implode(" ",array_keys($origw));
+    $document['nst_concept']=implode(" ",array_keys($neww));
     echo("\n");
 
     //sort it, than do the magic
     arsort($allweight);
     
     $ret=implode(" ",array_keys($allweight));
+    $document['content']=$ret;
     
     //do an implode
-    return json_encode(array(array("title"=>$name,"content"=>$ret)));
+    return json_encode(array($document));
 }
 
 //grab the programs
