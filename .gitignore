@@ -1,2 +1,5 @@
 test/
 enrichment/cache/
+submissiongen/cache/
+submissiongen/data/
+submissiongen/result/
