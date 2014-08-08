@@ -161,9 +161,8 @@ function getFormattedResult($res, $identifier, $hasjumpin, $run, $filterone = ''
         //get one line
         $line = array();
         $line[] = $identifier;
-        $line[] = $origfile;
-        $line[] = "Q0";
-        $line[] = $origfile;
+        $line[] = "Q0";        
+        $line[] = "v".$origfile;
         $line[] = getTimeFromSeconds($time[0]);
         $line[] = getTimeFromSeconds($time[1]);
 
@@ -220,7 +219,7 @@ function searchSubtask() {
 
             $resSolr = getResultFromSolr($q);
             //echo($q." (".count($resSolr).")\n");
-            $res.=getFormattedResult($resSolr, $top['queryId'], false, $filename);
+            $res.=getFormattedResult($resSolr, $top['queryId'], true, $filename);
         }
 
         //write to file
