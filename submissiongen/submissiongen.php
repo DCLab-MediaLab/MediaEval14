@@ -5,7 +5,7 @@ include("../enrichment/concept5.php");
 $transcripts = array(
     'subtitle' => 'M',
     'limsi' => "I",
-    //'lium' => "U",
+    'lium' => "U",
     'nst' => "S",
     'content' => 'IMSU');
 /*
@@ -46,22 +46,41 @@ function getSubtitleForCut($name) {
     }
     $r = json_decode(file_get_contents("http://hiddenmon.cloudapp.net:8983/solr/mm-test/select?q=title:" . urlencode($name) . "&wt=json"), true);
 
-
     file_put_contents("cache/e" . md5($name), serialize($r));
     return $r;
 }
 
-function getResultFromSolr($search) {
-    if (file_exists("cache/" . md5($search))) {
-        return unserialize(file_get_contents("cache/" . md5($search)));
+function getResultFromSolr($search,$field) {
+    if (file_exists("cache/" . md5($search.$field))) {
+        return unserialize(file_get_contents("cache/" . md5($search.$field)));
     }
-    $r = file_get_contents("http://hiddenmon.cloudapp.net:8983/solr/mm-test/select?q=" . urlencode($search) . "&rows=30&fl=fileName%3Atitle%2C&wt=csv&indent=true");
+
+    /*
+    if ($transcriptname != 'content') {
+                    $q1 = $transcriptname . "_concept:" . trim($q1) . "";
+                } else {
+                    $q1 = $transcriptname . ":" . trim($q1) . "";
+                }
+    */
+    
+    $url="http://hiddenmon.cloudapp.net:8983/solr/mm-test/select?q=" . urlencode($search) . "&defType=edismax".
+            "&qf=".$field."%5E3.5+".$field."_concept%5E1.5&mm=30&pf=".$field."~2%5E3.0+".$field."_concept%5E2.25&ps=2&tie=0.1&bq=".$field."%5E1.5&pf2=".$field."%5E3.0+".$field."_concept%5E2.25&pf3=2".
+            "&boost=1.5&stopwords=true&lowercaseOperators=true&rows=30&fl=fileName%3Atitle%2C&wt=csv&indent=true";
+    
+    if ($field == 'content')
+    {
+        $url="http://hiddenmon.cloudapp.net:8983/solr/mm-test/select?q=" . urlencode($search) . "&defType=edismax".
+            "&qf=".$field."%5E3.5+".$field."_concept%5E1.5&mm=30&pf=".$field."~2%5E3.0&ps=2&tie=0.1&bq=".$field."%5E1.5&pf2=".$field."%5E3.0&pf3=2".
+            "&boost=1.5&stopwords=true&lowercaseOperators=true&rows=30&fl=fileName%3Atitle%2C&wt=csv&indent=true";
+    }
+    
+    $r = file_get_contents($url);
     if (strlen($r) == 0)
         return array();
 
     $r = explode("\n", $r);
     unset($r[0]);
-    file_put_contents("cache/" . md5($search), serialize($r));
+    file_put_contents("cache/" . md5($search.$field), serialize($r));
     return $r;
 }
 
@@ -192,7 +211,7 @@ function searchSubtask() {
     //for each transcript
     $prio = 1;
     foreach ($transcripts as $transcriptname => $transcriptcode) {
-        $filename = "me14sh_DCLab2014_S_" . $prio . "_Sh_" . $transcriptcode . "_N_ConceptEnrichment";
+        $filename = "me14sh_DCLab_S_" . $prio . "_Sh_" . $transcriptcode . "_N_Concept2";
         echo($filename . "\n");
         $prio++;
 
@@ -209,15 +228,18 @@ function searchSubtask() {
                     continue;
                 }
                 $q1 = strtolower(morpho(trim($q1)));
-                if ($transcriptname != 'content') {
-                    $q1 = $transcriptname . "_concept:" . trim($q1) . "";
-                } else {
-                    $q1 = $transcriptname . ":" . trim($q1) . "";
-                }
             }
-            $q = implode(" AND ", $q);
+            $q = implode(" ", $q);
 
-            $resSolr = getResultFromSolr($q);
+            $resSolr = getResultFromSolr('"'.$q.'"',$transcriptname);
+            
+            if (count($resSolr)<30)
+            {
+                $resSolr=array_merge($resSolr, getResultFromSolr($q,$transcriptname));
+                $resSolr=array_unique($resSolr);
+                $resSolr=array_slice($resSolr, 0,30);
+            }
+            
             //echo($q." (".count($resSolr).")\n");
             $res.=getFormattedResult($resSolr, $top['queryId'], true, $filename);
         }
@@ -237,7 +259,7 @@ function anchorSubtask() {
     //for each transcript
     $prio = 1;
     foreach ($transcripts as $transcriptname => $transcriptcode) {
-        $filename = "me14sh_DCLab2014_L_" . $prio . "_Sh_" . $transcriptcode . "_N_ConceptEnrichment";
+        $filename = "me14sh_DCLab_L_" . $prio . "_Sh_" . $transcriptcode . "_N_Concept2";
         echo($filename . "\n");
         $prio++;
 
@@ -305,16 +327,22 @@ function anchorSubtask() {
                     continue;
                 }
                 $q1 = strtolower(morpho(trim($q1)));
-                if ($transcriptname != 'content') {
-                    $q1 = $transcriptname . "_concept:" . trim($q1) . "";
-                } else {
-                    $q1 = $transcriptname . ":" . trim($q1) . "";
-                }
             }
             $words=array_slice($words,0,15);
-            $q = implode(" AND ", $words);
+            $q = implode(" ", $words);
 
-            $resSolr = getResultFromSolr($q);
+            $resSolr = getResultFromSolr($q,$transcriptname);
+            
+            if (count($resSolr)<30)
+            {
+                $words=array_slice($words,0,5);
+                $q = implode(" ", $words);
+            
+                $resSolr=array_merge($resSolr, getResultFromSolr($q,$transcriptname));
+                $resSolr=array_unique($resSolr);
+                $resSolr=array_slice($resSolr, 0,30);
+            }
+            
             $res.=getFormattedResult($resSolr, $anchor['anchorId'], false, $filename, substr($anchor['fileName'], 1));
 
             //create the query
@@ -325,7 +353,7 @@ function anchorSubtask() {
     }
 }
 
-genTimes();
-//searchSubtask();
+//genTimes();
+searchSubtask();
 anchorSubtask();
 ?>
